@@ -2,7 +2,7 @@ version: "3.9"
 services:
   status-hub:
     # Hent image fra Docker Hub i stedet for at bygge lokalt
-    image: chilinhm/agentstatus:latest
+    image: chilinhm/agentstatus:main
     container_name: status-hub
     restart: unless-stopped
     env_file:
