@@ -9,7 +9,7 @@ PROVIDERS = [
     ClaudeProvider()
 ]
 
-INTERVAL = 300  # 5 minutter
+INTERVAL = 120  # 2 minutter
 
 def run():
     while True:
