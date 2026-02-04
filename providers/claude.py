@@ -12,6 +12,8 @@ class ClaudeProvider(StatusProvider):
         return r.json()
 
     def normalize(self, raw):
+        STATUS_URL = "https://status.claude.com/"
+
         status = raw["status"]
         
         result = {
@@ -19,6 +21,7 @@ class ClaudeProvider(StatusProvider):
             "service": "global",
             "status": map_indicator(status["indicator"]),
             "updated_at": raw["page"]["updated_at"],
+            "link_to_status": STATUS_URL, 
             "incidents": []
         }
         
@@ -30,8 +33,7 @@ class ClaudeProvider(StatusProvider):
                 "status": incident["status"],
                 "impact": incident["impact"],
                 "created_at": incident["created_at"],
-                "updated_at": incident["updated_at"],
-                "shortlink": incident.get("shortlink", "")
+                "updated_at": incident["updated_at"]
             })
         
         return [result]
