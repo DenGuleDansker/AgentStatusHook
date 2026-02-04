@@ -35,13 +35,13 @@ def send(events):
         status = event.get("status", "unknown")
         link_to_status = event.get("link_to_status", "N/A")
 
-        # Opret besked for hver udbyder
+        # Opret besked for hver udbyder - fjern ekstra mellemrum
         msg = (
             f"{emoji} **{provider.upper()}**\n"
             f"Service: `{service}`\n"
             f"Status: **{status}**\n"
             f"Link to status: **{link_to_status}**"
-        )
+        ).strip()
 
         # Tilføj hændelser for denne udbyder
         incidents = event.get("incidents", [])
@@ -64,7 +64,7 @@ def send(events):
                     f"\n{impact_emoji} **{incident.get('name', 'Unknown Incident')}**\n"
                     f"  Status: `{incident.get('status', 'N/A')}`\n"
                     f"  Impact: `{incident.get('impact', 'N/A')}`"
-                )
+                ).strip()
                 
                 if incident.get("shortlink"):
                     msg += f"\n  Link: {incident['shortlink']}"
@@ -75,7 +75,10 @@ def send(events):
     # Send beskeder for hver udbyder
     for provider, message in provider_messages.items():
         try:
-            requests.post(url=DISCORD_WEBHOOK, json={"content": message})
+            # Fjern ekstra mellemrum fra hele beskeden
+            clean_message = '\n'.join(line.strip() for line in message.split('\n'))
+            
+            requests.post(url=DISCORD_WEBHOOK, json={"content": clean_message})
             logging.info(f"Besked sendt for {provider}")
         except Exception as e:
             logging.error(f"Fejl ved sending af besked for {provider}: {e}")
