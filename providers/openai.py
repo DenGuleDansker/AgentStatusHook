@@ -13,10 +13,25 @@ class OpenAIProvider(StatusProvider):
 
     def normalize(self, raw):
         status = raw["status"]
-
-        return [{
+        
+        result = {
             "provider": self.name,
             "service": "global",
             "status": map_indicator(status["indicator"]),
-            "updated_at": raw["page"]["updated_at"]
-        }]
+            "updated_at": raw["page"]["updated_at"],
+            "incidents": []
+        }
+        
+        # Add incidents if any
+        for incident in raw.get("incidents", []):
+            result["incidents"].append({
+                "id": incident["id"],
+                "name": incident["name"],
+                "status": incident["status"],
+                "impact": incident["impact"],
+                "created_at": incident["created_at"],
+                "updated_at": incident["updated_at"],
+                "shortlink": incident.get("shortlink", "")
+            })
+        
+        return [result]

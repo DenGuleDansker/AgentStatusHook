@@ -1,8 +1,7 @@
 import os
 import requests
 
-# DISCORD_WEBHOOK = os.getenv("DISCORD_WEBHOOK")
-DISCORD_WEBHOOK = "https://discord.com/api/webhooks/1468645283410874621/UoFlzyW7i7NeFQEA3uDUpd9Osjx205wPsvOwYSRwHc3qjQBCGOvYa3X-mpJoLsLBBYfB"
+DISCORD_WEBHOOK = os.getenv("DISCORD_WEBHOOK")
 
 def send(event):
     if not DISCORD_WEBHOOK:
@@ -21,5 +20,26 @@ def send(event):
         f"Service: `{event['service']}`\n"
         f"Status: **{event['status']}**"
     )
+    
+    # Add incidents if any
+    incidents = event.get("incidents", [])
+    if incidents:
+        msg += "\n\n**🚨 Active Incidents:**"
+        for incident in incidents:
+            impact_emoji = {
+                "none": "🟢",
+                "minor": "🟡",
+                "major": "🟠",
+                "critical": "🔴"
+            }.get(incident.get("impact", "").lower(), "⚪")
+            
+            msg += (
+                f"\n{impact_emoji} **{incident['name']}**\n"
+                f"  Status: `{incident['status']}`\n"
+                f"  Impact: `{incident['impact']}`"
+            )
+            
+            if incident.get("shortlink"):
+                msg += f"\n  Link: {incident['shortlink']}"
 
     requests.post(url=DISCORD_WEBHOOK, json={"content": msg})
