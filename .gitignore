@@ -1,0 +1,56 @@
+macOS
+.DS_Store
+
+Python
+pycache/
+*.py[cod]
+*$py.class
+*.so
+
+Virtual environments
+.venv/
+venv/
+env/
+ENV/
+pyenv/
+pip-wheel-metadata/
+
+Build / packaging
+build/
+dist/
+*.egg-info/
+.eggs/
+
+Test / cache
+htmlcov/
+.tox/
+.cache/
+.pytest_cache/
+.mypy_cache/
+.coverage
+coverage.xml
+
+Jupyter
+.ipynb_checkpoints/
+
+dotenv / secrets
+.env
+.env.*
+
+IDEs / editors
+.vscode/
+.idea/
+*.swp
+*.swo
+
+Logs
+*.log
+
+Misc
+*.pem
+*.key
+*.crt
+*.sqlite3
+*.db
+local_settings.py
+instance/
