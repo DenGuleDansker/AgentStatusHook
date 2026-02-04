@@ -11,9 +11,7 @@ on:
     branches: [ "main" ]
 
 env:
-  # Docker Hub registry
   REGISTRY: docker.io
-  # Det repository du vil pushe til (brugernavn/repo)
   IMAGE_NAME: chilinhm/agentstatus
 
 jobs:
@@ -28,12 +26,34 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # DEBUG STEP: Bekræft om secrets er tilgængelige (udskriver ikke selve hemmelighederne)
+      # Kør denne step før login for at se om DOCKERHUB_USERNAME / DOCKERHUB_TOKEN er sat.
+      - name: Debug: check Docker Hub secrets
+        run: |
+          if [ -z "${DOCKERHUB_USERNAME}" ]; then
+            echo "DOCKERHUB_USERNAME is not set"
+            exit 1
+          else
+            echo "DOCKERHUB_USERNAME is set"
+          fi
+          if [ -z "${DOCKERHUB_TOKEN}" ]; then
+            echo "DOCKERHUB_TOKEN is not set"
+            exit 1
+          else
+            echo "DOCKERHUB_TOKEN is set"
+          fi
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      # Opsætning for multi-arch (QEMU + buildx)
       - name: Set up QEMU (for emulation multi-arch)
         uses: docker/setup-qemu-action@v2
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
+      # Login til Docker Hub — springes over for PRs fra forks (se 'if')
       - name: Log into Docker Hub
         if: github.event_name != 'pull_request'
         uses: docker/login-action@v3
@@ -42,18 +62,14 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Install cosign
-        if: github.event_name != 'pull_request'
-        uses: sigstore/cosign-installer@v3
-        with:
-          cosign-release: 'v2.2.4'
-
+      # Extract metadata (tags/labels)
       - name: Extract Docker metadata
         id: meta
         uses: docker/metadata-action@v5
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
 
+      # Build og push (multi-arch). push er slået fra for PRs.
       - name: Build and push Docker image (multi-arch)
         id: build-and-push
         uses: docker/build-push-action@v5
@@ -66,6 +82,7 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+      # Sign the published image (kun udenfor PRs)
       - name: Sign the published Docker image
         if: ${{ github.event_name != 'pull_request' }}
         env:
