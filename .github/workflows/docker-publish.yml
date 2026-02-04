@@ -17,6 +17,7 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
+    environment: Githubflow  # <-- Tilføj denne linje
     permissions:
       contents: read
       packages: write
