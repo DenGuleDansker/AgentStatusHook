@@ -38,7 +38,7 @@ jobs:
           fi
 
       - name: Debug: check Docker Hub secrets
-        if: ${{ github.event_name != 'pull_request' }}
+        if: github.event_name != 'pull_request'
         run: |
           if [ -z "${DOCKERHUB_USERNAME}" ]; then
             echo "DOCKERHUB_USERNAME is not set"
@@ -63,7 +63,7 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: Log into Docker Hub
-        if: ${{ github.event_name != 'pull_request' }}
+        if: github.event_name != 'pull_request'
         uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
@@ -71,7 +71,7 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Install cosign
-        if: ${{ github.event_name != 'pull_request' }}
+        if: github.event_name != 'pull_request'
         uses: sigstore/cosign-installer@v3
         with:
           cosign-release: 'v2.4.1'
@@ -95,7 +95,7 @@ jobs:
           cache-to: type=gha,mode=max
 
       - name: Sign the published Docker image
-        if: ${{ github.event_name != 'pull_request' }}
+        if: github.event_name != 'pull_request'
         env:
           TAGS: ${{ steps.meta.outputs.tags }}
           DIGEST: ${{ steps.build-and-push.outputs.digest }}
