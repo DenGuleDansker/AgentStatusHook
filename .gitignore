@@ -43,6 +43,8 @@ IDEs / editors
 *.swp
 *.swo
 
+*.json
+
 Logs
 *.log
 
