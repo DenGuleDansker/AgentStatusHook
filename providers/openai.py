@@ -1,5 +1,6 @@
 import requests
 from .base import StatusProvider
+from .utils import map_indicator
 
 class OpenAIProvider(StatusProvider):
     name = "openai"
@@ -11,12 +12,11 @@ class OpenAIProvider(StatusProvider):
         return r.json()
 
     def normalize(self, raw):
-        events = []
-        for c in raw["components"]:
-            events.append({
-                "provider": self.name,
-                "service": c["name"],
-                "status": c["status"],
-                "updated_at": c["updated_at"]
-            })
-        return events
+        status = raw["status"]
+
+        return [{
+            "provider": self.name,
+            "service": "global",
+            "status": map_indicator(status["indicator"]),
+            "updated_at": raw["page"]["updated_at"]
+        }]

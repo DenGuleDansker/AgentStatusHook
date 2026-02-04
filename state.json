@@ -1,0 +1,14 @@
+[
+  {
+    "provider": "openai",
+    "service": "global",
+    "status": "operational",
+    "updated_at": "2026-01-30T19:04:39Z"
+  },
+  {
+    "provider": "claude",
+    "service": "global",
+    "status": "operational",
+    "updated_at": "2026-02-04T12:20:54.811Z"
+  }
+]

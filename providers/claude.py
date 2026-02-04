@@ -1,9 +1,10 @@
 import requests
 from .base import StatusProvider
+from .utils import map_indicator
 
 class ClaudeProvider(StatusProvider):
     name = "claude"
-    URL = "https://status.anthropic.com/api/v2/summary.json"
+    URL = "https://status.claude.com/api/v2/summary.json"
 
     def fetch(self):
         r = requests.get(self.URL, timeout=10)
@@ -11,12 +12,11 @@ class ClaudeProvider(StatusProvider):
         return r.json()
 
     def normalize(self, raw):
-        events = []
-        for c in raw["components"]:
-            events.append({
-                "provider": self.name,
-                "service": c["name"],
-                "status": c["status"],
-                "updated_at": c["updated_at"]
-            })
-        return events
+        status = raw["status"]
+
+        return [{
+            "provider": self.name,
+            "service": "global",
+            "status": map_indicator(status["indicator"]),
+            "updated_at": raw["page"]["updated_at"]
+        }]
