@@ -1,0 +1,19 @@
+version: "3.9"
+services:
+  status-hub:
+    build: .
+    image: status-hub:latest
+    container_name: status-hub
+    restart: unless-stopped
+    env_file:
+      - .env
+    # Hvis du vil eksplicit eksponere en variabel fra host-miljøet kan du
+    # bruge environment: - DISCORD_WEBHOOK, men env_file indlæser allerede .env.
+    # Gem state lokalt så den ikke går tabt
+    volumes:
+      - ./state.json:/app/state.json
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"

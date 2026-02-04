@@ -8,7 +8,7 @@
   {
     "provider": "claude",
     "service": "global",
-    "status": "operational",
-    "updated_at": "2026-02-04T12:20:54.811Z"
+    "status": "outage",
+    "updated_at": "2026-02-04T16:39:20.314Z"
   }
 ]
