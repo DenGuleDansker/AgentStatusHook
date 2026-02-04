@@ -4,6 +4,7 @@ status-hub/
 ├── app.py                # entrypoint
 ├── poller.py             # scheduler + diff
 ├── providers/
+│   ├── utils.py
 │   ├── base.py
 │   ├── openai.py
 │   └── claude.py
