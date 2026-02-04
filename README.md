@@ -1,5 +1,5 @@
 # Status Hub
-
+```
 status-hub/
 ├── app.py                # entrypoint
 ├── poller.py             # scheduler + diff
@@ -11,7 +11,7 @@ status-hub/
 │   └── discord.py
 ├── state.json            # gemt status
 └── requirements.txt
-
+```
 Projekt: Discord webhook notifier
 
 Kort beskrivelse
