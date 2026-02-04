@@ -28,10 +28,35 @@ Forudsætninger
 Installation og opsætning
 -------------------------
 1. Opret og aktiver virtualenv:
-   ```bash
-   python3 -m venv .venv
-   source .venv/bin/activate
 
+   - På macOS/Linux:
+     ```bash
+     python3 -m venv .venv
+     source .venv/bin/activate
+     ```
+
+   - På Windows:
+     ```powershell
+     # Kommandoprompt
+     python -m venv .venv
+     .venv\Scripts\activate.bat
+
+     # PowerShell
+     python -m venv .venv
+     .venv\Scripts\Activate.ps1
+     ```
+
+   - Alternativt med generisk Python-kommando (virker på alle platforme):
+     ```bash
+     python -m venv .venv
+     
+     # Aktivering
+     # macOS/Linux: 
+     source .venv/bin/activate
+     
+     # Windows:
+     .venv\Scripts\activate
+     ```
 
 Installer dependencies:
 pip install -r requirements.txt
