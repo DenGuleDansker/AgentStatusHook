@@ -37,7 +37,7 @@ jobs:
             echo "This run is a pull_request. Secrets from repo are NOT available for fork PRs."
           fi
 
-      - name: Debug: check Docker Hub secrets
+      - name: Debug check Docker Hub secrets
         if: github.event_name != 'pull_request'
         run: |
           if [ -z "${DOCKERHUB_USERNAME}" ]; then
