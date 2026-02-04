@@ -1,15 +1,14 @@
 version: "3.9"
 services:
   status-hub:
-    # Hent image fra Docker Hub i stedet for at bygge lokalt
     image: chilinhm/agentstatus:main
     container_name: status-hub
     restart: unless-stopped
     env_file:
       - .env
-    # Gem state lokalt så den ikke går tabt
+    # Gem state i en mappe
     volumes:
-      - ./state.json:/app/state.json
+      - ./state:/app/state
     logging:
       driver: "json-file"
       options:
