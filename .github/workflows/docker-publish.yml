@@ -82,6 +82,10 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=sha,prefix={{branch}}-,format=short
+            type=semver,pattern={{version}}
 
       - name: Build and push Docker image (multi-arch)
         id: build-and-push
