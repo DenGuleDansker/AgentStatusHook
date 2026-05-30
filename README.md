@@ -64,4 +64,4 @@ pip install -r requirements.txt
 
 
 Opret en .env-fil (eller sæt miljøvariabler) og tilføj din Discord webhook URL:
-DISCORD_WEBHOOK_URL="https://discord.com/api/webhooks/..."
+DISCORD_WEBHOOK="https://discord.com/api/webhooks/..."

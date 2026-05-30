@@ -1,84 +1,101 @@
 import os
 import requests
 import logging
+from datetime import datetime, timezone
 
 DISCORD_WEBHOOK = os.getenv("DISCORD_WEBHOOK")
 
+STATUS_CONFIG = {
+    "operational":         {"emoji": "🟢", "color": 0x2ECC71},
+    "degraded_performance":{"emoji": "🟡", "color": 0xF1C40F},
+    "partial_outage":      {"emoji": "🟠", "color": 0xE67E22},
+    "major_outage":        {"emoji": "🔴", "color": 0xE74C3C},
+}
+
+IMPACT_EMOJI = {
+    "none":     "🟢",
+    "minor":    "🟡",
+    "major":    "🟠",
+    "critical": "🔴",
+}
+
+def _fmt_time(raw: str) -> str:
+    if not raw:
+        return "N/A"
+    try:
+        dt = datetime.fromisoformat(raw.replace("Z", "+00:00"))
+        return dt.strftime("%d %b %Y %H:%M UTC")
+    except ValueError:
+        return raw
+
+
+def _build_embed(event: dict) -> dict:
+    status = event.get("status", "unknown")
+    cfg = STATUS_CONFIG.get(status, {"emoji": "⚪", "color": 0x95A5A6})
+
+    provider   = event.get("provider", "Unknown")
+    service    = event.get("service", "global")
+    link       = event.get("link_to_status") or ""
+    updated_at = _fmt_time(event.get("updated_at", ""))
+
+    title = f"{cfg['emoji']} {provider.upper()} — {status.replace('_', ' ').title()}"
+
+    fields = [
+        {"name": "Service",      "value": f"`{service}`",    "inline": True},
+        {"name": "Status",       "value": f"`{status}`",     "inline": True},
+        {"name": "Opdateret",    "value": f"`{updated_at}`", "inline": True},
+    ]
+
+    if link:
+        fields.append({"name": "Status page", "value": f"[{provider} status]({link})", "inline": False})
+
+    incidents = event.get("incidents", [])
+    for incident in incidents:
+        if not isinstance(incident, dict):
+            continue
+        impact      = incident.get("impact", "").lower()
+        ie          = IMPACT_EMOJI.get(impact, "⚪")
+        name        = incident.get("name", "Unknown Incident")
+        istat       = incident.get("status", "N/A")
+        ilink       = incident.get("shortlink", "")
+        created_at  = _fmt_time(incident.get("created_at", ""))
+        iupdated_at = _fmt_time(incident.get("updated_at", ""))
+
+        value = (
+            f"Status: `{istat}` · Impact: `{impact}`\n"
+            f"Startet: `{created_at}`\n"
+            f"Sidst opdateret: `{iupdated_at}`"
+        )
+        if ilink:
+            value += f"\n[View incident]({ilink})"
+        fields.append({"name": f"{ie} {name}", "value": value, "inline": False})
+
+    return {
+        "title": title,
+        "color": cfg["color"],
+        "fields": fields,
+        "footer": {"text": "Agent Status Monitor"},
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+    }
+
+
 def send(events):
     if not DISCORD_WEBHOOK:
-        logging.warning("⚠️ DISCORD_WEBHOOK not set – skipping Discord notification")
+        logging.warning("DISCORD_WEBHOOK not set – skipping Discord notification")
         return
 
-    # Konverter til liste hvis det er en enkelt event
     if isinstance(events, dict):
         events = [events]
 
-    # Gruppér hændelser efter udbyder
-    provider_messages = {}
-
     for event in events:
-        # Sikr at event er en dictionary
         if not isinstance(event, dict):
-            logging.error(f"Ugyldigt event: {event}")
+            logging.error(f"Invalid event: {event}")
             continue
 
-        emoji = {
-            "operational": "🟢",
-            "degraded_performance": "🟡",
-            "partial_outage": "🟠",
-            "major_outage": "🔴"
-        }.get(event.get("status", ""), "⚪")
-
-        # Sikr at nødvendige nøgler eksisterer
-        provider = event.get("provider", "Unknown")
-        service = event.get("service", "global")
-        status = event.get("status", "unknown")
-        link_to_status = event.get("link_to_status", "N/A")
-
-        # Opret besked for hver udbyder - fjern ekstra mellemrum
-        msg = (
-            f"{emoji} **{provider.upper()}**\n"
-            f"Service: `{service}`\n"
-            f"Status: **{status}**\n"
-            f"Link to status: **{link_to_status}**"
-        ).strip()
-
-        # Tilføj hændelser for denne udbyder
-        incidents = event.get("incidents", [])
-        if incidents:
-            msg += "\n\n**🚨 Active Incidents:**"
-            for incident in incidents:
-                # Sikr at incident er en dictionary
-                if not isinstance(incident, dict):
-                    logging.error(f"Ugyldigt incident: {incident}")
-                    continue
-
-                impact_emoji = {
-                    "none": "🟢",
-                    "minor": "🟡",
-                    "major": "🟠",
-                    "critical": "🔴"
-                }.get(incident.get("impact", "").lower(), "⚪")
-                
-                msg += (
-                    f"\n{impact_emoji} **{incident.get('name', 'Unknown Incident')}**\n"
-                    f"  Status: `{incident.get('status', 'N/A')}`\n"
-                    f"  Impact: `{incident.get('impact', 'N/A')}`"
-                ).strip()
-                
-                if incident.get("shortlink"):
-                    msg += f"\n  Link: {incident['shortlink']}"
-
-        # Gem besked for hver udbyder
-        provider_messages[provider] = msg
-
-    # Send beskeder for hver udbyder
-    for provider, message in provider_messages.items():
+        embed = _build_embed(event)
         try:
-            # Fjern ekstra mellemrum fra hele beskeden
-            clean_message = '\n'.join(line.strip() for line in message.split('\n'))
-            
-            requests.post(url=DISCORD_WEBHOOK, json={"content": clean_message})
-            logging.info(f"Besked sendt for {provider}")
+            resp = requests.post(DISCORD_WEBHOOK, json={"embeds": [embed]})
+            resp.raise_for_status()
+            logging.info(f"Discord embed sent for {event.get('provider', '?')}")
         except Exception as e:
-            logging.error(f"Fejl ved sending af besked for {provider}: {e}")
+            logging.error(f"Failed to send Discord embed for {event.get('provider', '?')}: {e}")
