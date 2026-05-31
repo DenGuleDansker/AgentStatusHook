@@ -3,6 +3,7 @@ import time
 import logging
 from providers.openai import OpenAIProvider
 from providers.claude import ClaudeProvider
+from providers.google import GoogleProvider
 from poller import load_state, save_state, diff
 from subscribers.discord import send
 
@@ -24,7 +25,8 @@ for key, value in os.environ.items():
 
 PROVIDERS = [
     OpenAIProvider(),
-    ClaudeProvider()
+    ClaudeProvider(),
+    GoogleProvider(),
 ]
 
 INTERVAL = 120  # 2 minutter
